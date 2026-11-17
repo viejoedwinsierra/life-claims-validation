@@ -31,3 +31,29 @@ implementación transaccional.
 
 La identidad definitiva del evento no se establecerá
 hasta verificar el contrato del kit.
+
+## Identidad provisional de reclamación
+
+Para la detección de duplicidad R8 se propone una clave
+compuesta por:
+
+1. Número de póliza.
+2. Tipo de documento del asegurado.
+3. Número de documento del asegurado.
+4. Fecha del siniestro.
+5. Tipo de reclamación.
+
+Esta combinación permite diferenciar reclamaciones
+asociadas a pólizas distintas de un mismo asegurado.
+
+El identificador `id_solicitud` se reserva para la
+idempotencia técnica y no forma parte de la identidad
+de negocio.
+
+La identidad es provisional: requiere validación con
+negocio, especialmente cuando existen varios amparos
+para un mismo evento.
+
+La comparación implementada en el dominio no garantiza
+por sí sola exclusión concurrente. La persistencia deberá
+incorporar mecanismos transaccionales en PostgreSQL.
