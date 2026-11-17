@@ -1,6 +1,6 @@
 """Normalize external claim and policy contracts."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 
@@ -10,8 +10,12 @@ def normalize_claim(claim: dict[str, Any]) -> dict[str, Any]:
     normalized["tipo_documento_asegurado"] = claim["asegurado"]["tipo_documento"]
     normalized["documento_asegurado"] = claim["asegurado"]["numero_documento"]
     normalized["fecha_siniestro"] = date.fromisoformat(claim["fecha_siniestro"])
-    normalized["fecha_radicacion"] = date.fromisoformat(
-        claim["fecha_radicacion"]
+    filing_date = claim["fecha_radicacion"]
+
+    normalized["fecha_radicacion"] = (
+        datetime.fromisoformat(filing_date).date()
+        if "T" in filing_date
+        else date.fromisoformat(filing_date)
     )
 
     return normalized
