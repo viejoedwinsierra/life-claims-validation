@@ -14,8 +14,20 @@ def validate_policy(
     if policy is None:
         return ["R1"]
 
-    # R2: Insured document must match the policy.
-    if claim["documento_asegurado"] != policy["documento_asegurado"]:
+    # R2: Both document type and number must be present and match.
+    claim_type = claim.get("tipo_documento_asegurado")
+    policy_type = policy.get("tipo_documento_asegurado")
+    claim_number = claim.get("documento_asegurado")
+    policy_number = policy.get("documento_asegurado")
+
+    if (
+        not claim_type
+        or not policy_type
+        or not claim_number
+        or not policy_number
+        or claim_type != policy_type
+        or claim_number != policy_number
+    ):
         violations.append("R2")
 
     # R5: Requested coverage must be contracted.
