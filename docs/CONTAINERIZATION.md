@@ -8,7 +8,7 @@ FastAPI runs inside Docker using Uvicorn.
 - Host API port: 8001
 - SQLite database: /app/data/claims.db
 - Persistent Docker volume: claims-data
-- Core simulator: host.docker.internal:8081
+- Core simulator: core-simulado:8081
 
 The confidential Core simulator is excluded from the image.
 
@@ -43,3 +43,45 @@ Avoid docker compose down -v when data must be preserved.
 - Ruff: all checks passed
 
 Core failure injection may produce transient failures.
+
+## P011 - Docker Compose and structured logging
+
+Docker Compose starts two services:
+
+- claims-api: FastAPI with persistent SQLite storage.
+- core-simulado: original assessment Core on the internal Docker network.
+
+The API connects to http://core-simulado:8081.
+
+The confidential Core files must be available locally:
+
+- kit_prueba_tecnica/core_simulado/core_simulado.py
+- kit_prueba_tecnica/core_simulado/polizas_core.json
+
+The Core directory is excluded from Git and mounted read-only.
+Evaluators must use their authorized copy of the assessment kit.
+
+### Structured HTTP logging
+
+The API generates JSON events with:
+
+- timestamp
+- level
+- event
+- request_id
+- method
+- path
+- status_code
+- duration_ms
+
+The X-Request-ID response header provides the correlation identifier.
+The middleware does not log request bodies.
+
+### Verification
+
+- Docker Compose: PASS
+- API health: HTTP 200
+- Core health from API: HTTP 200
+- JSON logging: HTTP 200 and HTTP 404 verified
+- Pytest: 160 passed
+- Ruff: PASS

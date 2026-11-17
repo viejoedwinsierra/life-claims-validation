@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Response
 
 from life_claims.api.schemas import ClaimRequest
+from life_claims.api.structured_logging import StructuredLoggingMiddleware
 from life_claims.application.claims_service import ClaimsApplicationService
 from life_claims.infrastructure.core_client import CoreClient
 from life_claims.infrastructure.core_http_factory import create_core_http_client
@@ -17,6 +18,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
+app.add_middleware(StructuredLoggingMiddleware)
 
 def get_claims_service():
     """Provide the application service and close its HTTP client."""
