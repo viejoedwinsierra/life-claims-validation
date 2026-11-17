@@ -38,3 +38,17 @@ jobs:
 
       - name: Run automated tests
         run: python -m pytest
+
+  docker-build:
+    name: Docker image build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build Docker image
+        run: docker build --tag life-claims-validation:ci .
