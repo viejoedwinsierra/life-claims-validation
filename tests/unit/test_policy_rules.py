@@ -1,6 +1,7 @@
 """Unit tests for policy existence, identity and coverage rules."""
 
 import pytest
+
 from life_claims.domain.policy_rules import validate_policy
 
 
@@ -32,12 +33,22 @@ def test_r2_rejects_document_mismatch(claim, policy):
 
 @pytest.mark.parametrize(
     "coverage",
-    ["ITP", "ENF_GRAVES", "AUX_FUNERARIO"],
+    ["ENF_GRAVES", "AUX_FUNERARIO"],
 )
 def test_r5_rejects_uncontracted_coverage(claim, policy, coverage):
     claim["tipo_reclamacion"] = coverage
 
     assert "R5" in validate_policy(claim, policy)
+
+
+@pytest.mark.parametrize(
+    "coverage",
+    ["MUERTE", "ITP"],
+)
+def test_r5_accepts_contracted_coverage(claim, policy, coverage):
+    claim["tipo_reclamacion"] = coverage
+
+    assert "R5" not in validate_policy(claim, policy)
 
 
 def test_valid_policy_passes_all_three_rules(claim, policy):
