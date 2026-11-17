@@ -54,3 +54,27 @@ def test_normalize_policy():
 def test_normalize_missing_policy():
     """A missing policy must remain None for rule R1."""
     assert normalize_policy(None) is None
+
+
+def test_normalize_claim_accepts_filing_datetime():
+    """Filing datetime must be converted to a calendar date."""
+    from datetime import date
+
+    from life_claims.domain.claim_normalizer import normalize_claim
+
+    claim = {
+        "id_solicitud": "SOL-TEST-005",
+        "numero_poliza": "AV-VI-0100000",
+        "asegurado": {
+            "tipo_documento": "CC",
+            "numero_documento": "2123456789",
+        },
+        "tipo_reclamacion": "MUERTE",
+        "fecha_siniestro": "2026-01-01",
+        "fecha_radicacion": "2026-01-15T10:30:00",
+    }
+
+    result = normalize_claim(claim)
+
+    assert result["fecha_siniestro"] == date(2026, 1, 1)
+    assert result["fecha_radicacion"] == date(2026, 1, 15)
