@@ -1,0 +1,218 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Life Claims Validation API",
+    "description": "Digital life insurance claims validation service.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health",
+        "description": "Report basic application liveness.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reclamaciones": {
+      "post": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Create Claim",
+        "description": "Submit a claim to the application service.",
+        "operationId": "create_claim_reclamaciones_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Claim rejected by business rules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Claim Reclamaciones Post"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Claim registered successfully"
+          },
+          "202": {
+            "description": "Claim pending confirmation or in progress"
+          },
+          "409": {
+            "description": "Idempotency conflict"
+          },
+          "422": {
+            "description": "Invalid request payload"
+          },
+          "503": {
+            "description": "Claims service unavailable"
+          }
+        }
+      }
+    },
+    "/reclamaciones/{id_solicitud}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Get Claim",
+        "description": "Retrieve a previously submitted claim.",
+        "operationId": "get_claim_reclamaciones__id_solicitud__get",
+        "parameters": [
+          {
+            "name": "id_solicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id Solicitud"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Claim found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Claim Reclamaciones  Id Solicitud  Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Claim not found"
+          },
+          "422": {
+            "description": "Invalid request parameters"
+          },
+          "503": {
+            "description": "Claims database unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClaimRequest": {
+        "properties": {
+          "id_solicitud": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id Solicitud"
+          },
+          "canal": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Canal"
+          },
+          "numero_poliza": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Numero Poliza"
+          },
+          "asegurado": {
+            "$ref": "#/components/schemas/InsuredRequest"
+          },
+          "tipo_reclamacion": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Tipo Reclamacion"
+          },
+          "fecha_siniestro": {
+            "type": "string",
+            "title": "Fecha Siniestro"
+          },
+          "fecha_radicacion": {
+            "type": "string",
+            "title": "Fecha Radicacion"
+          },
+          "reclamante": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Reclamante"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion",
+            "default": ""
+          },
+          "documentos_adjuntos": {
+            "items": {},
+            "type": "array",
+            "title": "Documentos Adjuntos"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id_solicitud",
+          "canal",
+          "numero_poliza",
+          "asegurado",
+          "tipo_reclamacion",
+          "fecha_siniestro",
+          "fecha_radicacion"
+        ],
+        "title": "ClaimRequest",
+        "description": "Input contract for a life insurance claim."
+      },
+      "InsuredRequest": {
+        "properties": {
+          "tipo_documento": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Tipo Documento"
+          },
+          "numero_documento": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Numero Documento"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tipo_documento",
+          "numero_documento"
+        ],
+        "title": "InsuredRequest",
+        "description": "Insured person's identifying information."
+      }
+    }
+  }
+}
