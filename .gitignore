@@ -224,3 +224,10 @@ __marimo__/
 
 # Confidential technical assessment materials
 /kit_prueba_tecnica/
+
+# Python local artifacts
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
