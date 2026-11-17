@@ -105,6 +105,60 @@ Analytics data is separate from operational Core validation.
 Documentation:
 [Data ingestion and quality](docs/DATA_INGESTION_AND_QUALITY.md)
 
+## Claims analytics and batch evaluation
+
+P010 adds a read-only analytical workflow for evaluating insurance
+claims against the simulated Insurance Core.
+
+The analytical workflow is separate from the operational REST API.
+It does not register claims or modify the Insurance Core.
+
+### Analytical components
+
+- Versioned SQLite migrations in `datos/migrations/`.
+- Claim JSON ingestion with batch traceability.
+- Filing-time and claim-distribution SQL KPIs.
+- HTTP batch evaluation using the existing business rules.
+- Persistent evaluation runs and individual results.
+- Technical-error recovery and consolidated reporting.
+
+### Evaluation evidence
+
+The analytical batch contains 307 claim requests.
+
+The consolidated evaluation was performed on 2026-11-17
+and persisted as `RUN_ID=2`.
+
+| Result | Count |
+|---|---:|
+| Valid | 193 |
+| Rejected | 114 |
+| Technical errors | 0 |
+| Total | 307 |
+
+Business rejection rate: **37.13%**.
+
+The original evaluation is preserved as `RUN_ID=1`.
+The consolidated run reuses 290 original results and recovers
+17 requests that initially encountered HTTP errors.
+
+### Evaluation scope
+
+The analytical evaluation covers business rules R1-R7.
+
+Rule R8 is implemented in the application but was not evaluated
+against transactional claim history in this analytical run.
+The recorded value is `r8_source=NONE`.
+
+Consequently, the analytical results must not be interpreted
+as a complete R1-R8 validation.
+
+### Documentation
+
+- [OpenAPI 3.1 contract](docs/openapi/openapi.json)
+- [P010 analytical report](docs/evidence/P010-claims-analytics-report.md)
+- [Data ingestion and quality](docs/DATA_INGESTION_AND_QUALITY.md)
+
 ## Engineering evidence
 
 - [AI collaboration log](AI_LOG.md)
