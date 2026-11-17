@@ -1,41 +1,43 @@
 # ADR-001: Identificación de reclamaciones duplicadas
 
 ## Estado
-Propuesto.
+
+Aceptado para la prueba técnica.
 
 ## Contexto
+
 La regla R8 exige detectar reclamaciones duplicadas del
-mismo asegurado y del mismo evento.
+mismo asegurado y evento.
 
-La aplicación debe soportar solicitudes concurrentes,
-reintentos y fallos de comunicación con el core externo.
+El sistema también debe distinguir los reintentos técnicos
+de nuevas solicitudes que representan el mismo evento.
 
-## Decisión propuesta
-1. Separar idempotencia técnica de duplicidad de negocio.
-2. Definir una identidad canónica del evento.
-3. Consultar reclamaciones existentes antes del registro.
-4. Garantizar exclusión concurrente mediante PostgreSQL.
-5. No asumir que un timeout del core significa que el
-   registro externo falló.
-6. No publicar datos personales ni el kit confidencial.
+## Decisión
 
-## Pendiente de confirmar
-- Campos disponibles para identificar un evento.
-- Si existe un identificador único de siniestro de origen.
-- Semántica de reclamaciones del mismo evento y diferente amparo.
-- Capacidades de consulta y reconciliación del core.
+Separar dos mecanismos independientes:
 
-## Consecuencias
-La regla R8 requerirá un puerto de persistencia y una
-implementación transaccional.
+1. Idempotencia técnica por identificador de solicitud.
+2. Duplicidad de negocio por identidad del evento asegurado.
 
-La identidad definitiva del evento no se establecerá
-hasta verificar el contrato del kit.
+La implementación actual utiliza SQLite.
 
-## Identidad provisional de reclamación
+## Idempotencia técnica
 
-Para la detección de duplicidad R8 se propone una clave
-compuesta por:
+La clave `id_solicitud` identifica una solicitud.
+
+El repositorio calcula `payload_hash` mediante SHA-256
+sobre la representación JSON normalizada para serialización,
+con claves ordenadas.
+
+Resultados:
+
+- Misma solicitud y mismo contenido: `ALREADY_EXISTS`.
+- Misma solicitud y contenido diferente: `PAYLOAD_CONFLICT`.
+- Solicitud nueva: continúa la reserva del evento.
+
+## Identidad del evento de negocio
+
+La identidad provisional del evento se compone de:
 
 1. Número de póliza.
 2. Tipo de documento del asegurado.
@@ -43,17 +45,63 @@ compuesta por:
 4. Fecha del siniestro.
 5. Tipo de reclamación.
 
-Esta combinación permite diferenciar reclamaciones
-asociadas a pólizas distintas de un mismo asegurado.
+La función `event_identity` construye esta identidad.
 
-El identificador `id_solicitud` se reserva para la
-idempotencia técnica y no forma parte de la identidad
-de negocio.
+El repositorio genera `business_event_key` mediante SHA-256.
 
-La identidad es provisional: requiere validación con
-negocio, especialmente cuando existen varios amparos
-para un mismo evento.
+Esta identidad permite diferenciar reclamaciones
+correspondientes a pólizas distintas.
 
-La comparación implementada en el dominio no garantiza
-por sí sola exclusión concurrente. La persistencia deberá
-incorporar mecanismos transaccionales en PostgreSQL.
+## Control de duplicados
+
+La reserva utiliza restricciones de unicidad SQLite
+y `INSERT ... ON CONFLICT DO NOTHING`.
+
+Cuando existe un evento equivalente:
+
+- Si el original está `REGISTERED`, se persiste un
+  rechazo de la nueva solicitud con motivo `R8`.
+- Si el original sigue en procesamiento o pendiente,
+  la aplicación devuelve `IN_PROGRESS`.
+- Si coincide `id_solicitud`, se aplica primero
+  la semántica de idempotencia técnica.
+
+La operación de rechazo por duplicidad utiliza
+`BEGIN IMMEDIATE` para controlar la escritura concurrente.
+
+## Consecuencias
+
+Ventajas:
+
+- Reintentos técnicos no crean nuevas reclamaciones.
+- Duplicados de negocio pueden rechazarse con R8.
+- Los rechazos R8 mantienen trazabilidad por solicitud.
+- La identidad de negocio está separada del ID técnico.
+
+Limitaciones:
+
+- La identidad del evento es provisional.
+- Debe validarse el tratamiento de múltiples amparos
+  asociados a un mismo siniestro.
+- SQLite tiene limitaciones de concurrencia de escritura.
+- No existe reconciliación automática con el Core.
+- No se ha implementado PostgreSQL.
+
+## Evolución futura
+
+Evaluar PostgreSQL según requisitos de escalabilidad.
+
+Confirmar con negocio la identidad definitiva del evento,
+especialmente cuando existen múltiples amparos.
+
+Definir reconciliación de operaciones cuyo resultado
+en el Core sea incierto.
+
+Estas mejoras no forman parte de la implementación actual.
+
+## Referencias
+
+- `src/life_claims/domain/duplicate_rules.py`
+- `src/life_claims/infrastructure/sqlite_claims_repository.py`
+- `docs/arquitectura/ADR-002-persistencia-sqlite.md`
+- `docs/arquitectura/ADR-003-integracion-core.md`
