@@ -208,3 +208,49 @@ d5865eb | 2026-11-16 | merge: integrate legacy baseline into develop
 d14fe5f | 2026-11-16 | chore: exclude confidential assessment materials
 0dd288e | 2026-11-16 | chore: initialize legacy validation project structure
 6f09538 | 2026-11-16 | Initial commit
+
+## 15. P009 - Architecture documentation
+
+Date: November 17, 2026.
+Branch: feature/009-architecture-documentation.
+
+Objectives:
+- Document system context, containers and components.
+- Align architecture decisions with implemented code.
+- Improve evaluator onboarding through README.
+
+AI contributions:
+- Proposed C4 Level 1, Level 2 and Level 3 diagrams.
+- Reviewed application, Core client and SQLite repository.
+- Proposed ADR-001 revision and ADR-002/ADR-003.
+- Identified technical limitations and recovery gaps.
+- Assisted with README documentation.
+
+Human validation:
+- Inspected actual source code and Docker configuration.
+- Executed and verified documentation changes in WSL2.
+- Reviewed Git differences and repository status.
+- Preserved the confidential assessment kit.
+
+Known architectural limitations:
+- SQLite and the external Core are not transactionally atomic.
+- Automatic reconciliation is not implemented.
+- Core failures other than timeouts need additional handling.
+- PostgreSQL is a future option, not an implemented component.
+
+## 16. P008 - Evidence update
+
+Local verification completed during P008:
+- Pytest: 131 tests passed.
+- Ruff: all checks passed.
+- Docker image built successfully.
+- Docker Compose configuration validated.
+- End-to-end claim registration verified with the Core.
+- SQLite persistence verified after container restart.
+
+Git evidence:
+- Feature commit: 87e8b75.
+- Develop merge commit: 84d2680.
+
+The P008 feature CI was reported green during validation.
+The develop merge workflow status requires final verification.
