@@ -221,3 +221,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Confidential technical assessment materials
+/kit_prueba_tecnica/
